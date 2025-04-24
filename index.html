@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lucky Wheel</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    canvas { border: 5px solid #444; border-radius: 50%; transition: transform 4s ease-out; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 18px; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translate(-50%, 30%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    #congratsPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 30px 50px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      z-index: 999;
+      font-size: 24px;
+      font-weight: bold;
+      color: #28a745;
+      opacity: 0;
+      transition: opacity 1s, transform 1s;
+    }
+    #prizeImage {
+      max-width: 200px;
+      margin-top: 10px;
+    }
+    #pointer {
+      position: absolute;
+      top: 47.5%;
+      left: 50%;
+      transform: translate(-50%, -100%);
+      width: 0;
+    height: 100px;
+      border-left: 20px solid transparent; /* Larger left border */
+      border-right: 20px solid transparent; /* Larger right border */
+      border-bottom: 40px solid #000; /* Larger bottom border */
+    }
+  </style>
+</head>
+<body>
+  <h1>🎡 Lucky Wheel</h1>
+  <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <div id="pointer"></div>
+  <br>
+  <button id="spinButton">Spin the Wheel</button>
+
+  <div id="congratsPopup">
+    🎉 Congratulations! You won: <span id="prizeText"></span>
+    <br>
+    <img id="prizeImage" src="" alt="Prize Image" />
+  </div>
+
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const pointer = document.getElementById('pointer');
+    
+    const segments = [
+      { name: 'Prize A', image: 'https://angkormeas.com/wp-content/uploads/2023/12/iphone-15-pro-max-naturaltitanium.jpg?v=1720453379' },
+      { name: 'Prize B', image: 'https://via.placeholder.com/150?text=Prize+B' },
+      { name: 'Prize C', image: 'https://via.placeholder.com/150?text=Prize+C' },
+      { name: 'Prize D', image: 'https://via.placeholder.com/150?text=Prize+D' },
+      { name: 'Prize E', image: 'https://via.placeholder.com/150?text=Prize+E' },
+      { name: 'Prize F', image: 'https://via.placeholder.com/150?text=Prize+F' }
+    ];
+    const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#AA65D2', '#6DF178', '#FF5733'];
+
+    const expireAt = new Date("2025-04-25T23:59:00Z");
+
+    function drawWheel(rotation = 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const numSegments = segments.length;
+      const angle = (2 * Math.PI) / numSegments;
+
+      for (let i = 0; i < numSegments; i++) {
+        ctx.beginPath();
+        ctx.moveTo(250, 250);
+        ctx.arc(250, 250, 250, angle * i + rotation, angle * (i + 1) + rotation);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.save();
+        ctx.translate(250, 250);
+        ctx.rotate(angle * (i + 0.5) + rotation);
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Arial";
+        ctx.fillText(segments[i].name, 100, 10);
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    const spinButton = document.getElementById("spinButton");
+
+    spinButton.addEventListener("click", () => {
+      const now = new Date();
+      if (now > expireAt) {
+        alert("Sorry, the wheel is no longer active. Expired at: " + expireAt.toLocaleString());
+        return;
+      }
+
+      // Get the current number of spins from localStorage, default to 0 if not set
+      const spins = parseInt(localStorage.getItem("spins") || "0");
+      if (spins >= 10) {
+        alert("You have already spun the wheel twice!");
+        return;
+      }
+
+      // Spin the wheel
+      const numSegments = segments.length;
+      const prizeIndex = Math.floor(Math.random() * numSegments);
+      const anglePerSegment = 360 / numSegments;
+      const rotationAngle = 360 * 5 + (360 - prizeIndex * anglePerSegment - anglePerSegment / 2);
+
+      canvas.style.transform = `rotate(${rotationAngle}deg)`;
+
+      // Rotate the pointer accordingly
+      pointer.style.transform = `translate(-50%, -100%) rotate(${rotationAngle}deg)`;
+
+      setTimeout(() => {
+        const popup = document.getElementById("congratsPopup");
+        const prizeText = document.getElementById("prizeText");
+        const prizeImage = document.getElementById("prizeImage");
+
+        const prize = segments[prizeIndex];
+        prizeText.textContent = prize.name;
+        prizeImage.src = prize.image;
+
+        popup.style.display = 'block';
+        popup.style.opacity = 1;
+        popup.style.animation = 'fadeUp 1s ease-out';
+
+        // Increment the spin count and store it
+        localStorage.setItem("spins", (spins + 1).toString());
+      }, 4000);
+    });
+  </script>
+</body>
+</html>
