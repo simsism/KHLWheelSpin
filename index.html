@@ -110,7 +110,7 @@
 
       // Get the current number of spins from localStorage, default to 0 if not set
       const spins = parseInt(localStorage.getItem("spins") || "0");
-      if (spins >= 10) {
+      if (spins >= 1) {
         alert("You have already spun the wheel twice!");
         return;
       }
